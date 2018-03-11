@@ -172,7 +172,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 扁平化流，前者得到一个无限流，后者在遇到无限流是抛出`endless_stream_exception`。
 
-<font color=blue>#`未完成：关于"扁平化"的解释`#</font>
+<font color=orange>`未完成：关于"扁平化"的解释` </font>
 
 	endless_flat_map(Pred pred)
 	flat_map(Pred pred)
@@ -244,7 +244,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 收集流中元素。如果这是一个无限流，将会抛出`endless_stream_exception`。
 
-<font color=blue>#`未完成：关于"收集"的解释`#</font>
+<font color=orange>`未完成：关于"收集"的解释`</font>
 
 ## 类型擦除
 
@@ -270,7 +270,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 ### 工具类模板SplitStream<>
 
-<font color=blue>#`未完成`#</font>
+<font color=orange>`未完成`</font>
 
 ### 并行版本的终端操作
 
@@ -293,4 +293,4 @@ cppStream的所有组件都在`yao::stream`命名空间下
 总结
 
 
-<font color=blue>#`未完成`#</font>
+<font color=orange>`未完成`</font>
