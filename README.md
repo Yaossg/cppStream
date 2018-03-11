@@ -1,11 +1,11 @@
-#cppStream
-###——by Yaossg
+# cppStream
+### ——by Yaossg
 
-##简介
+## 简介
 cppStream灵感来源于Java的Stream API，使用C++17实现
 
 
-##简单演示
+## 简单演示
 
 	using namespace yao::stream;
 	
@@ -18,16 +18,16 @@ cppStream灵感来源于Java的Stream API，使用C++17实现
 
 cppStream的所有组件都在`yao::stream`命名空间下
 
-##流是什么
+## 流是什么
 就是流水线，与容器不同，延时求值是流最大的特点，只有需要求值，才回去求值
 
-###流的分类
+### 流的分类
 * 流分为有限流和无限流，其中某些无限流是可能无限的无限流，仍然属于无限流，想要检查一个流是否无限，可以调用`stream.endless()`来检查。
 
 * 流也可以分为源和中间流，源就是流中数据的源头，详见下面获取流一节，中间流就是处理流数据的部分，详见下面中间操作一节
 
-###流的底层操作
-####成员类型
+### 流的底层操作
+#### 成员类型
 	
 	using value_type = ...;
 
@@ -38,7 +38,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 辅助模板，`value_type_t<T>`相当于`typename T::value_type`
 
-####成员函数
+#### 成员函数
 
 	decltype(auto) front();
 
@@ -63,7 +63,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 **[提示]**如果需要自定义，后面会讲到如何使用这些类型和函数，但一般而言不要直接调用他们。
 
-##获取流
+## 获取流
 
 	from_endless_iterator(First first)
 
@@ -122,7 +122,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 生成只包含一个重复元素的无限流，如果`!opt.has_value()`，则生成一个无限空流。
 
-##中间操作
+## 中间操作
 
 	filter(Pred pred)
 
@@ -191,7 +191,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 当流耗尽，从头开始，如果这是一个空流，结果是未定义的(UB)。
 
-##复合操作
+## 复合操作
 
 复合操作不使用`operator>>`，而是直接把流作为函数的参数。
 
@@ -203,7 +203,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 组合流，吧streams...中流的每个元素调用`pred(elements...)`组成一个新的流，这个流的长度取决于最长的那个流，只有所有流都是无限的，生成的流才是无限的。
 
-##终端操作
+## 终端操作
 
 	first()
 	element_at(size_t pos)
@@ -246,13 +246,13 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 <font color=blue>#`未完成：关于"收集"的解释`#</font>
 
-##类型擦除
+## 类型擦除
 
 所有有关类型擦除的组件都在`yao::stream::type_erasure`命名空间下
 
 如果你不需要`<typeinfo>`中的组件支持你可以定义`YAO_STREAM_NO_TYPEINFO`宏来取消
 
-###AnyStream<T\>
+### AnyStream<T\>
 
 可以存任何元素类型为`T`的流，拥有和其他流一样的接口
 
@@ -262,17 +262,17 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 	type_erasure::AnyStream range = int_range(0, 100); //自动类型推导
 
-##并行
+## 并行
 <font color=red>
-####警告！本库不负责任何形式的线程安全措施，请自己做好安全措施！
+#### 警告！本库不负责任何形式的线程安全措施，请自己做好安全措施！
 </font>
 所有有关并行的组件都在`yao::stream::parallel`命名空间下
 
-###工具类模板SplitStream<>
+### 工具类模板SplitStream<>
 
 <font color=blue>#`未完成`#</font>
 
-###并行版本的终端操作
+### 并行版本的终端操作
 
 	for_each(std::uintmax_t task_size, Pred pred)
 	reduce(std::uintmax_t task_size, BiPred biPred)
