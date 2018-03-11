@@ -262,9 +262,9 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 额外多一个`type()`函数，只有在没定义`CPP_STREAM_NO_TYPEINFO`宏时才可以使用，返回存的流的类型信息
 
-可以不指定`T`，库提供了自动推导：
 
-	type_erasure::AnyStream range = int_range(0, 100); //自动类型推导
+	type_erasure::AnyStream<long> range = int_range(0L, 100L); //手动指定类型
+	type_erasure::AnyStream range2 = int_range(0, 100); //自动类型推导:AnyStream<int>
 
 ## 并行
 
