@@ -2,13 +2,13 @@
 ### ——by Yaossg
 
 ## 简介
-cppStream灵感来源于Java的Stream API，使用C++17实现
 
+cppStream灵感来源于Java的Stream API，使用C++17实现
 
 ## 简单演示
 
 	using namespace yao::stream;
-	
+
 	auto result = int_range(1, 101)
 		>> reduce(std::plus<>{});
 	std::cout << result.value() << std::endl; // 5050
@@ -18,21 +18,25 @@ cppStream灵感来源于Java的Stream API，使用C++17实现
 
 cppStream的所有组件都在`yao::stream`命名空间下
 
+如果定义了宏`CPP_STREAM_NO_EXCEPTION`，那么这个库将直接终止程序，而不是抛出异常
+
 ## 流是什么
+
 就是流水线，与容器不同，延时求值是流最大的特点，只有需要求值，才回去求值
 
 ### 流的分类
+
 * 流分为有限流和无限流，其中某些无限流是可能无限的无限流，仍然属于无限流，想要检查一个流是否无限，可以调用`stream.endless()`来检查。
 
 * 流也可以分为源和中间流，源就是流中数据的源头，详见下面获取流一节，中间流就是处理流数据的部分，详见下面中间操作一节
 
 ### 流的底层操作
 #### 成员类型
-	
+
 	using value_type = ...;
 
 值类型，表示这个流包含的元素的类型
-	
+
 	template<T>
 	using value_type_t = ...;
 
@@ -57,11 +61,11 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 使用`Builder`构建下一个流
 
-**[提示]**不调用`next()`而直接调用`front()`结果是未定义的(UB)。
+**[提示]** 不调用`next()`而直接调用`front()`结果是未定义的(UB)。
 
-**[提示]**当`!next()`时调用`front()`，结果是未定义的(UB)，对于一个无限流进行有限操作，会抛出`endless_stream_exception`异常，对于一个无限流进行无限操作，结果是未定义的(UB)。
+**[提示]** 当`!next()`时调用`front()`，结果是未定义的(UB)，对于一个无限流进行有限操作，会抛出`endless_stream_exception`异常，对于一个无限流进行无限操作，结果是未定义的(UB)。
 
-**[提示]**如果需要自定义，后面会讲到如何使用这些类型和函数，但一般而言不要直接调用他们。
+**[提示]** 如果需要自定义，后面会讲到如何使用这些类型和函数，但一般而言不要直接调用他们。
 
 ## 获取流
 
@@ -147,7 +151,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 	skip_while(Pred pred)
 
 跳过所有元素直到满足`!pred(element)`，不包括这个元素。
-	
+
 	sort()
 	sort(Compare compare)
 
@@ -172,7 +176,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 扁平化流，前者得到一个无限流，后者在遇到无限流是抛出`endless_stream_exception`。
 
-<font color=orange>`未完成：关于"扁平化"的解释` </font>
+ [未完成：关于"扁平化"的解释]
 
 	endless_flat_map(Pred pred)
 	flat_map(Pred pred)
@@ -213,11 +217,11 @@ cppStream的所有组件都在`yao::stream`命名空间下
 	for_each(Pred pred)
 
 对于每个元素执行`pred(element)`。如果这是一个无限流，将会抛出`endless_stream_exception`。
-	
+
 	reduce(BiPred biPred)
 
 规约，以第一个元素作为`init`，不断执行`init = biPred(init, element)`。如果这是一个无限流，将会抛出`endless_stream_exception`。
-	
+
 	min()
 	min(Compare compare)
 	max()
@@ -244,33 +248,33 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 收集流中元素。如果这是一个无限流，将会抛出`endless_stream_exception`。
 
-<font color=orange>`未完成：关于"收集"的解释`</font>
+ [未完成：关于"收集"的解释]
 
 ## 类型擦除
 
 所有有关类型擦除的组件都在`yao::stream::type_erasure`命名空间下
 
-如果你不需要`<typeinfo>`中的组件支持你可以定义`YAO_STREAM_NO_TYPEINFO`宏来取消
+如果你不需要`<typeinfo>`中的组件支持你可以定义`CPP_STREAM_NO_TYPEINFO`宏来取消
 
 ### AnyStream<T\>
 
 可以存任何元素类型为`T`的流，拥有和其他流一样的接口
 
-额外多一个`type()`函数，只有在没定义`YAO_STREAM_NO_TYPEINFO`宏时才可以使用，返回存的流的类型信息
+额外多一个`type()`函数，只有在没定义`CPP_STREAM_NO_TYPEINFO`宏时才可以使用，返回存的流的类型信息
 
 可以不指定`T`，库提供了自动推导：
 
 	type_erasure::AnyStream range = int_range(0, 100); //自动类型推导
 
 ## 并行
-<font color=red>
-#### 警告！本库不负责任何形式的线程安全措施，请自己做好安全措施！
-</font>
+
+### 警告！本库不负责任何形式的线程安全措施，请自己做好安全措施！
+
 所有有关并行的组件都在`yao::stream::parallel`命名空间下
 
 ### 工具类模板SplitStream<>
 
-<font color=orange>`未完成`</font>
+ [未完成]
 
 ### 并行版本的终端操作
 
@@ -292,5 +296,4 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 总结
 
-
-<font color=orange>`未完成`</font>
+ [未完成]
