@@ -227,7 +227,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 	max()
 	max(Compare compare)
 
-获得最大值或最小值，默认`compare`是`std::less<>{}`。如果这是一个无限流，将会抛出`endless_stream_exception`。
+获得最小值和最大值，默认`compare`是`std::less<>{}`。如果这是一个无限流，将会抛出`endless_stream_exception`。
 
 	minmax()
 	minmax(Compare compare)
@@ -268,7 +268,7 @@ cppStream的所有组件都在`yao::stream`命名空间下
 
 ## 并行
 
-### 警告！本库不负责任何形式的线程安全措施，请自己做好安全措施！
+### 警告！请不要使用下面的内容！
 
 所有有关并行的组件都在`yao::stream::parallel`命名空间下
 
