@@ -328,17 +328,17 @@ struct TakeWhileStream {
 	
 	Stream stream;
 	Pred pred;
-	bool left;
+	bool remaining;
 	
 	TakeWhileStream(Stream stream, Pred pred)
-		: stream(stream), pred(pred), left(true) {}
+		: stream(stream), pred(pred), remaining(true) {}
 		
 	decltype(auto) front() {
 		return stream.front();
 	}
 	
 	bool next() {
-		return left && (left = (stream.next() && std::invoke(pred, stream.front())));
+		return remaining && (remaining = (stream.next() && std::invoke(pred, stream.front())));
 	}
 	
 	bool endless() const {
@@ -354,21 +354,21 @@ struct SkipWhileStream {
 	
 	Stream stream;
 	Pred pred;
-	bool left;
+	bool remaining;
 	
 	SkipWhileStream(Stream stream, Pred pred)
-		: stream(stream), pred(pred), left(true){}
+		: stream(stream), pred(pred), remaining(true){}
 		
 	decltype(auto) front() {
 		return stream.front();
 	}
 	
 	bool next() {
-		while(left) {
+		while(remaining) {
 			if(!stream.next()) 
-				return left = false;
+				return remaining = false;
 			if(!std::invoke(pred, stream.front()))
-				return !(left = false);
+				return !(remaining = false);
 		}
 		return stream.next();
 	}
@@ -526,19 +526,19 @@ struct TailRepeatStream {
 	using value_type = remove_optional_t<valueType<Stream>>;
 	
 	Stream stream;
-	bool left;
+	bool remaining;
 	std::optional<value_type> cache;
 	
 	TailRepeatStream(Stream stream) 
-		: stream(stream), cache(), left(true) {}
+		: stream(stream), cache(), remaining(true) {}
 	
 	decltype(auto) front() {
-		return left ? (cache = stream.front()).value() : cache.value();
+		return remaining ? (cache = stream.front()).value() : cache.value();
 	}
 	
 	bool next() {
 		if(!stream.next()) 
-			left = false;
+			remaining = false;
 		return true;
 	}
 	
@@ -580,17 +580,17 @@ struct EndlessFlatStream {
 	using value_type = valueType<valueType<Stream>>;
 	
 	Stream stream;
-	bool left;
+	bool remaining;
 	
 	EndlessFlatStream(Stream stream) 
-		: stream(stream), left(false) {}
+		: stream(stream), remaining(false) {}
 	
 	decltype(auto) front() {
 		return stream.front().front();
 	}
 	
 	bool next() {
-		return (left && stream.front().next()) || ((left = (left = false, stream.next())) && stream.front().next());
+		return (remaining && stream.front().next()) || ((remaining = (remaining = false, stream.next())) && stream.front().next());
 	}
 	
 	bool endless() const {
