@@ -266,34 +266,3 @@ cppStream的所有组件都在`yao::stream`命名空间下
 	type_erasure::AnyStream<long> range = int_range(0L, 100L); //手动指定类型
 	type_erasure::AnyStream range2 = int_range(0, 100); //自动类型推导:AnyStream<int>
 
-## 并行
-
-### 警告！请不要使用下面的内容！
-
-所有有关并行的组件都在`yao::stream::parallel`命名空间下
-
-### 工具类模板SplitStream<>
-
- [未完成]
-
-### 并行版本的终端操作
-
-	for_each(std::uintmax_t task_size, Pred pred)
-	reduce(std::uintmax_t task_size, BiPred biPred)
-	min(std::uintmax_t task_size)
-	min(std::uintmax_t task_size, Compare compare)
-	max(std::uintmax_t task_size)
-	max(std::uintmax_t task_size, Compare compare)
-	minmax(std::uintmax_t task_size)
-	minmax(std::uintmax_t task_size, Compare compare)
-	all_match(std::uintmax_t task_size, Pred pred)
-	any_match(std::uintmax_t task_size, Pred pred)
-	none_match(std::uintmax_t task_size, Pred pred)
-	count(std::uintmax_t task_size, Counter counter)
-	collect(std::uintmax_t task_size, Container container, Collector collector)
-
-除了多了第一个参数task_size，接受的参数没有区别
-
-总结
-
- [未完成]
