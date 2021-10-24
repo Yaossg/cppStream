@@ -10,12 +10,13 @@
 #include <typeinfo>
 #endif
 
-#define Buildable template<typename Builder> \
-	decltype(auto) operator>>(Builder builder) const& \
-	{ return builder.build(*this); } \
-	template<typename Builder> \
-	decltype(auto) operator>>(Builder builder) && \
-	{ return builder.build(std::move(*this)); }
+#define Buildable \
+template<typename Builder> \
+decltype(auto) operator>>(Builder builder) const& \
+{ return builder.build(*this); } \
+template<typename Builder> \
+decltype(auto) operator>>(Builder builder) && \
+{ return builder.build(std::move(*this)); } 
 
 namespace yaossg::stream { 
 
@@ -76,7 +77,7 @@ template<typename T>
 using remove_optional_t = typename remove_optional<T>::type;
 
 template<typename T>
-using valueType = typename T::value_type;
+using value_t = typename T::value_type;
 
 
 
@@ -117,7 +118,7 @@ struct EmptyStream {
 
 template<typename First>
 struct EndlessIteratorStream {
-	using value_type = valueType<std::iterator_traits<First>>;
+	using value_type = value_t<std::iterator_traits<First>>;
 	
 	First current, upcoming;
 	
@@ -141,7 +142,7 @@ struct EndlessIteratorStream {
 
 template<typename First, typename Last>
 struct IteratorStream {
-	using value_type = valueType<std::iterator_traits<First>>;
+	using value_type = value_t<std::iterator_traits<First>>;
 	
 	First current, upcoming;
 	Last last;
@@ -216,7 +217,7 @@ struct GenerateStream {
 
 template<typename Stream, typename Pred>
 struct FilterStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	Pred pred;
@@ -244,7 +245,7 @@ struct FilterStream {
 
 template<typename Stream, typename Pred>
 struct MapStream {
-	using value_type = remove_optional_t<std::remove_cv_t<std::invoke_result_t<Pred, valueType<Stream>>>>;
+	using value_type = remove_optional_t<std::remove_cv_t<std::invoke_result_t<Pred, value_t<Stream>>>>;
 	
 	Stream stream;
 	Pred pred;
@@ -273,7 +274,7 @@ struct MapStream {
 
 template<typename Stream>
 struct TakeStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	size_t count;
@@ -298,7 +299,7 @@ struct TakeStream {
 
 template<typename Stream>
 struct SkipStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	size_t count;
@@ -324,7 +325,7 @@ struct SkipStream {
 
 template<typename Stream, typename Pred>
 struct TakeWhileStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	Pred pred;
@@ -342,7 +343,7 @@ struct TakeWhileStream {
 	}
 	
 	bool endless() const {
-		return stream.endless(); // that depends on pred
+		return stream.endless(); // depending on stream as well as pred
 	}
 	
 	Buildable;
@@ -350,7 +351,7 @@ struct TakeWhileStream {
 
 template<typename Stream, typename Pred>
 struct SkipWhileStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	Pred pred;
@@ -382,7 +383,7 @@ struct SkipWhileStream {
 
 template<typename Stream, typename Compare>
 struct SortStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	Compare compare;
@@ -414,7 +415,7 @@ struct SortStream {
 
 template<typename Stream>
 struct ReverseStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	std::vector<std::remove_cv_t<std::remove_reference_t<value_type>>> reversed;
@@ -443,16 +444,17 @@ struct ReverseStream {
 	Buildable;
 };
 
-template<typename Stream, typename Set>
+template<typename Stream>
 struct DistinctStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
+	using Set = std::set<value_type>;
 	Set set;
 	typename Set::const_iterator current;
 	
-	DistinctStream(Stream stream, Set set) 
-		: stream(stream), set(set), current() {}
+	DistinctStream(Stream stream) 
+		: stream(stream), set{}, current() {}
 	
 	decltype(auto) front() {
 		return *current;
@@ -474,7 +476,7 @@ struct DistinctStream {
 
 template<typename Stream, typename Peeker>
 struct PeekStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	Peeker peeker;
@@ -499,7 +501,7 @@ struct PeekStream {
 
 template<typename Stream>
 struct MakeEndlessStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream;
 	
@@ -523,7 +525,7 @@ struct MakeEndlessStream {
 
 template<typename Stream>
 struct TailRepeatStream {
-	using value_type = remove_optional_t<valueType<Stream>>;
+	using value_type = remove_optional_t<value_t<Stream>>;
 	
 	Stream stream;
 	bool remaining;
@@ -551,7 +553,7 @@ struct TailRepeatStream {
 
 template<typename Stream>
 struct LoopStream {
-	using value_type = valueType<Stream>;
+	using value_type = value_t<Stream>;
 	
 	Stream stream, cache;
 	
@@ -577,7 +579,7 @@ struct LoopStream {
 
 template<typename Stream>
 struct EndlessFlatStream {
-	using value_type = valueType<valueType<Stream>>;
+	using value_type = value_t<value_t<Stream>>;
 	
 	Stream stream;
 	bool remaining;
@@ -594,7 +596,7 @@ struct EndlessFlatStream {
 	}
 	
 	bool endless() const {
-		return true; // that depends on what the stream contains 
+		return true; // depending on what the stream contains 
 	}
 	
 	Buildable;
@@ -602,10 +604,10 @@ struct EndlessFlatStream {
 
 template<typename Stream>
 struct FlatStream {
-	using value_type = valueType<valueType<Stream>>;
+	using value_type = value_t<value_t<Stream>>;
 	
 	Stream stream;
-	std::vector<valueType<Stream>> streams;
+	std::vector<value_t<Stream>> streams;
 	size_t current; 
 	
 	FlatStream(Stream stream) 
@@ -631,14 +633,14 @@ struct FlatStream {
 
 template<typename StreamA, typename StreamB>
 struct JoinStreamAB {
-	static_assert(std::is_convertible_v<valueType<StreamB>, valueType<StreamA>>);
-	using value_type = valueType<StreamA>; 
+	static_assert(std::is_convertible_v<value_t<StreamB>, value_t<StreamA>>);
+	using value_type = value_t<StreamA>; 
 	
 	StreamA streamA;
 	StreamB streamB;
 	bool B;
 	
-	JoinStreamAB(StreamA&& streamA, StreamB&& streamB) 
+	JoinStreamAB(StreamA streamA, StreamB streamB) 
 		: streamA(streamA), streamB(streamB), B(false) {}
 	
 	decltype(auto) front() {
@@ -662,8 +664,8 @@ struct JoinStreams {};
 template<typename StreamA, typename ...Streams>
 struct JoinStreams<StreamA, Streams...> : JoinStreamAB<StreamA, JoinStreams<Streams...>> {
 	using extended = JoinStreamAB<StreamA, JoinStreams<Streams...>>;
-	JoinStreams(StreamA&& streamA, Streams&&... streams)
-		: extended(std::forward<StreamA&&>(streamA), JoinStreams<Streams...>(std::move(streams)...)) {}
+	JoinStreams(StreamA streamA, Streams... streams)
+		: extended(streamA, JoinStreams<Streams...>(streams...)) {}
 	using extended::front;
 	using extended::next;
 	using extended::endless;
@@ -683,17 +685,25 @@ struct JoinStreams<StreamA, StreamB> : JoinStreamAB<StreamA, StreamB> {
 };
 
 template<typename StreamA>
-struct JoinStreams<StreamA> {};
+struct JoinStreams<StreamA> {
+	using extended = StreamA;
+	using extended::extended;
+	using extended::front;
+	using extended::next;
+	using extended::endless;
+	
+	Buildable;
+};
 
 template<typename Pred, typename ...Streams>
 struct CombineStreams {
-	using value_type = remove_optional_t<std::invoke_result_t<Pred, valueType<Streams>...>>;
+	using value_type = remove_optional_t<std::invoke_result_t<Pred, value_t<Streams>...>>;
 	
 	Pred pred;
 	std::optional<value_type> cache;
 	std::tuple<Streams...> streams;
 	
-	CombineStreams(Pred pred, Streams&&... streams) 
+	CombineStreams(Pred pred, Streams... streams) 
 		: pred(pred), streams(streams...) {}
 	
 	decltype(auto) front() {
@@ -701,12 +711,12 @@ struct CombineStreams {
 	}
 	
 	bool next() {
-		return std::apply([](auto&... streams){ return (streams.next() && ...); }, streams) 
-		&& ((cache = std::apply([this](auto&... streams){ return std::invoke(pred, streams.front()...); }, streams)), true);
+		return std::apply([](auto... streams){ return (streams.next() && ...); }, streams) 
+		&& ((cache = std::apply([this](auto... streams){ return std::invoke(pred, streams.front()...); }, streams)), true);
 	}
 	
 	bool endless() const {
-		return std::apply([](auto&... streams){ return (streams.endless() && ...); }, streams);
+		return std::apply([](auto... streams){ return (streams.endless() && ...); }, streams);
 	}
 	
 	Buildable;
@@ -717,7 +727,7 @@ struct IterableBuilder {
 	struct Iterable {
 		struct Iterator {
 			using iterator_category = std::forward_iterator_tag;
-			using value_type = std::remove_cv_t<std::remove_reference_t<valueType<Stream>>>;
+			using value_type = std::remove_cv_t<std::remove_reference_t<value_t<Stream>>>;
 			using difference_type = size_t;
 			using pointer = value_type*;
 			using reference = value_type&;
@@ -737,11 +747,11 @@ struct IterableBuilder {
 			
 			auto operator++(int) {
 				struct TempIterator {
-					valueType<Stream> cache_value;
+					value_t<Stream> cache_value;
 					TempIterator(Iterator* iter) 
 						: cache_value(iter->stream->front()) {}
 					
-					decltype(auto) operator*() const {return cache_value;}
+					decltype(auto) operator*() const { return cache_value; }
 					
 				} temp(this);
 				++*this;
@@ -792,7 +802,7 @@ struct ReduceBuilder {
 	template<typename Stream>
 	auto build(Stream stream) {
 		throw_if_endless(stream);
-		std::optional<valueType<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
+		std::optional<value_t<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
 		while(stream.next())
 			init = std::invoke(biPred, init.value(), stream.front());
 		return init;
@@ -808,7 +818,7 @@ struct MinBuilder {
 	template<typename Stream>
 	auto build(Stream stream) {
 		throw_if_endless(stream);
-		std::optional<valueType<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
+		std::optional<value_t<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
 		while(stream.next())
 			init = std::min(stream.front(), init.value(), compare);
 		return init;
@@ -824,7 +834,7 @@ struct MaxBuilder {
 	template<typename Stream>
 	auto build(Stream stream) {
 		throw_if_endless(stream);
-		std::optional<valueType<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
+		std::optional<value_t<Stream>> init = stream.next() ? std::optional(stream.front()) : std::nullopt;
 		while(stream.next())
 			init = std::max(stream.front(), init.value(), compare);
 		return init;
@@ -839,10 +849,10 @@ struct MinMaxBuilder {
 	
 	template<typename Stream>
 	auto build(Stream stream) const
-		-> std::optional<std::pair<valueType<Stream>, valueType<Stream>>> {
+		-> std::optional<std::pair<value_t<Stream>, value_t<Stream>>> {
 		throw_if_endless(stream);
 		if(stream.next()) {
-			valueType<Stream> min = stream.front(), max = stream.front();
+			value_t<Stream> min = stream.front(), max = stream.front();
 			while(stream.next()) {
 				min = std::min(stream.front(), min, compare);
 				max = std::max(stream.front(), max, compare);
@@ -942,7 +952,7 @@ auto from_unchecked(Container const& container) {
 
 
 template<typename IntType>
-auto iota(IntType const& first, IntType const& step = 1) {
+auto iota(IntType first, IntType step = 1) {
 	return IntegerStream<IntType>(first, step);
 }
 
@@ -978,16 +988,16 @@ auto iterate(Init init, Pred0 pred0, Pred pred) {
 }
 
 template<typename IntType>
-auto int_range(IntType const& last) {
+auto int_range(IntType last) {
 	return iota(IntType(0), IntType(1)) >> take(last);
 }
 template<typename IntType>
-auto int_range(IntType const& first, IntType const& last) {
+auto int_range(IntType first, IntType last) {
 	return iota(first, IntType(1)) >> take(last - first);
 }
 
 template<typename IntType>
-auto int_range(IntType const& first, IntType const& last, IntType const& step) {
+auto int_range(IntType first, IntType last, IntType step) {
 	return iota(first, step) >> take((last - first + IntType(1)) / step);
 }
 
@@ -1007,7 +1017,7 @@ auto endless_singleton(std::nullopt_t) {
 }
 
 template<typename T>
-auto endless_singleton(std::optional<T>&& opt) {
+auto endless_singleton(std::optional<T> opt) {
 	return generate([=]{ return opt; }) >> filter([](auto opt){ return opt.has_value(); }) >> map([](auto opt){ return opt.value(); });
 }
 
@@ -1017,7 +1027,7 @@ auto singleton(std::nullopt_t) {
 }
 
 template<typename T>
-auto singleton(std::optional<T>&& opt) {
+auto singleton(std::optional<T> opt) {
 	return generate([=]{ return *opt; }) >> take(opt.has_value());
 }
 
@@ -1032,8 +1042,7 @@ auto sort(Compare compare) {
 
 auto reverse() { return make_builder([](auto stream){ return throw_if_endless(stream), ReverseStream(stream); }); }
 
-template<typename Set>
-auto distinct(Set&& set) { return builder_of<DistinctStream>(set); }
+auto distinct() { return builder_of<DistinctStream>(); }
 
 template<typename Peeker>
 auto peek(Peeker peeker) { return builder_of<PeekStream>(peeker); }
@@ -1050,13 +1059,11 @@ auto loop() { return builder_of<LoopStream>(); }
 
 template<typename ...Streams>
 auto join_streams(Streams... streams) {
-	static_assert(sizeof...(Streams) >= 2);
-	return JoinStreams<std::remove_reference_t<Streams>...>(std::move(streams)...);
+	return JoinStreams<std::remove_reference_t<Streams>...>(streams...);
 } 
 template<typename Pred, typename ...Streams>
 auto combine_streams(Pred pred, Streams... streams) {
-	static_assert(sizeof...(Streams) >= 2);
-	return CombineStreams<std::remove_reference_t<Streams>...>(pred, std::move(streams)...);
+	return CombineStreams<std::remove_reference_t<Streams>...>(pred, streams...);
 } 
 
 IterableBuilder iterable() { return {}; }
@@ -1133,11 +1140,11 @@ struct StreamHolderBase {
 	virtual bool endless() const = 0;
 };
 template<typename Stream>
-struct StreamHolder : StreamHolderBase<valueType<Stream>> {
-	using base_type = StreamHolderBase<valueType<Stream>>;
+struct StreamHolder : StreamHolderBase<value_t<Stream>> {
+	using base_type = StreamHolderBase<value_t<Stream>>;
 	Stream stream;
 	
-	StreamHolder(Stream const& stream) : stream(stream) {}
+	StreamHolder(Stream stream) : stream(stream) {}
 
 #ifndef YAO_STREAM_NO_TYPEINFO
 	virtual const std::type_info& type() const override {
@@ -1170,7 +1177,7 @@ struct AnyStream {
 	AnyStream() : holder(nullptr) {}
 	
 	template<typename Stream>
-	AnyStream(Stream const& stream) 
+	AnyStream(Stream stream) 
 		: holder(new StreamHolder(stream)) {}
 	
 	AnyStream(AnyStream const& other)
@@ -1224,7 +1231,10 @@ struct AnyStream {
 	
 };
 template<typename Stream>
-AnyStream(Stream const& stream) -> AnyStream<valueType<Stream>>;
+AnyStream(Stream stream) -> AnyStream<value_t<Stream>>;
+
+auto erase() { return make_builder([](auto stream) { return AnyStream(stream); } ); }
+
 }
 
 } 
