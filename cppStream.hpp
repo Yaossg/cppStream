@@ -1,3 +1,5 @@
+// TODO references and pointers are to be rewritten.
+
 #ifndef __CPP_STREAM_HPP__
 #define __CPP_STREAM_HPP__
 #include <functional>
@@ -79,25 +81,6 @@ using remove_optional_t = typename remove_optional<T>::type;
 template<typename T>
 using value_t = typename T::value_type;
 
-
-
-template<typename T>
-struct EndlessEmptyStream {
-	using value_type = T;
-	
-	value_type front() {} // UB if invokes it
-	
-	bool next() {
-		while(true); // UB if invokes it
-		return false;
-	}
-	
-	bool endless() const {
-		return true;
-	}
-	
-	Buildable;
-};
 
 template<typename T>
 struct EmptyStream {
@@ -999,11 +982,6 @@ auto int_range(IntType first, IntType last) {
 template<typename IntType>
 auto int_range(IntType first, IntType last, IntType step) {
 	return iota(first, step) >> take((last - first + IntType(1)) / step);
-}
-
-template<typename T>
-auto endless_empty_stream() {
-	return EndlessEmptyStream<T>();
 }
 
 template<typename T>
